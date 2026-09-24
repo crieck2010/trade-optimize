@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trade-optimize"
+version = "0.1.0"
+description = "Markowitz portfolio optimization for the trade-suite: pure-Python mean-variance, max-Sharpe, efficient frontier, and risk-parity optimizers"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "crieck2010" }]
+keywords = ["trading", "portfolio", "markowitz", "optimization", "finance"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Office/Business :: Financial",
+]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=7"]
+
+[project.scripts]
+trade-optimize = "trade_optimize.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/crieck2010/trade-optimize"
+Repository = "https://github.com/crieck2010/trade-optimize"
+
+[tool.setuptools.packages.find]
+where = ["src"]
