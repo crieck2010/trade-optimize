@@ -86,3 +86,45 @@ All are long-only with an optional per-asset `--max-weight` cap.
 
 See `docs/METHODOLOGY.md` for the math and the honest limitations
 (estimation error dominates everything — that's why shrinkage is on by default).
+
+## The maths
+
+**What you learn.** How to spread capital across assets for a stated goal:
+lowest possible volatility, best risk-adjusted return, or equal risk from
+every holding. The engine also tells you where your risk actually lives
+(risk contributions), how concentrated you are (Herfindahl), and how much
+diversification you're really getting.
+
+**Why it matters.** A backtested strategy's returns are only half the story;
+how you *size* positions determines the volatility and drawdowns you actually
+experience. Mean-variance optimization is the canonical framework for turning
+return and risk estimates into weights — and its failure mode (garbage in,
+concentrated nonsense out) is why shrinkage and caps are on by default here.
+
+**The maths.**
+
+- *The Markowitz problem*: min ½·w′Σw − γ·μ′w subject to Σw = 1, 0 ≤ w ≤ cap.
+  γ = 0 gives the global minimum-variance portfolio; sweeping γ traces the
+  efficient frontier; the max-Sharpe (tangency) point maximizes (μ′w − rf)/σₚ.
+- *Solver*: projected gradient descent with step 1/L (L = largest eigenvalue
+  of Σ via power iteration), projected exactly onto the capped simplex by
+  bisection on the Lagrange multiplier.
+- *Covariance*: sample covariance shrunk toward its diagonal,
+  Σ = (1−δ)S + δ·diag(S) (δ = 0.2 default), plus a RiskMetrics (λ = 0.94)
+  EWMA option; means shrunk toward the grand mean (James-Stein flavour).
+  Cholesky doubles as a positive-definiteness check — non-PD input raises
+  instead of silently producing nonsense.
+- *Risk parity*: equal risk contribution wᵢ(Σw)ᵢ = σₚ²/n for all i, via
+  damped fixed-point iteration renormalized to the capped simplex.
+- *Analytics*: risk contributions RCᵢ = wᵢ(Σw)ᵢ (sum to portfolio variance),
+  diversification ratio, Herfindahl Σwᵢ².
+
+**Honest limitations.**
+
+- Estimation error dominates everything — means are far noisier than
+  covariances, so max-Sharpe weights from short samples deserve skepticism.
+- No transaction costs in the objective (they enter at rebalance time), and
+  the optimizer is single-period and myopic: no turnover penalty, no regime
+  conditioning.
+- Long-only only; the reported max-Sharpe point is the best point on a
+  finite γ grid, not an analytic optimum.
